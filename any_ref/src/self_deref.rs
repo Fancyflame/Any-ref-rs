@@ -1,4 +1,5 @@
 use super::make_any_ref;
+use crate as any_ref;
 
 pub trait SelfDeref<'a> {
     type Target: 'a;
