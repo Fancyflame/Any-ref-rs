@@ -114,8 +114,8 @@ pub fn make_any_ref(input: TokenStream) -> TokenStream {
             impl #impl_g any_ref::LifetimeDowncast for #ident #type_g #where_clause{
                 #[inline]
                 fn lifetime_downcast<'_shorter_lifetime_, '_longer_lifetime_: '_shorter_lifetime_>(
-                    from: &'_shorter_lifetime_ <Self as SelfDeref<'_longer_lifetime_>>::Target,
-                ) -> &'_shorter_lifetime_ <Self as SelfDeref<'_shorter_lifetime_>>::Target {
+                    from: &'_shorter_lifetime_ <Self as any_ref::SelfDeref<'_longer_lifetime_>>::Target,
+                ) -> &'_shorter_lifetime_ <Self as any_ref::SelfDeref<'_shorter_lifetime_>>::Target {
                     from
                 }
             }

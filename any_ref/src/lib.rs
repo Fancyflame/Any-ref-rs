@@ -118,21 +118,24 @@ where
     }
 }
 
-#[test]
-fn test() {
-    use crate as any_ref;
+mod test {
+    #[test]
+    fn test() {
+        use crate as any_ref;
+        use any_ref::{make_any_ref, new_any_ref};
 
-    make_any_ref! {
-        pub struct Foo=for<'a> &'a str;
-        pub struct Bar<T:'static> = for<'a> Vec<&'a T>;
-        struct AAA<T:'static,const U:usize> = for<'lifetime> std::marker::PhantomData<&'lifetime (T,)>;
-    }
+        make_any_ref! {
+            pub struct Foo=for<'a> &'a str;
+            pub struct Bar<T:'static> = for<'a> Vec<&'a T>;
+            struct AAA<T:'static,const U:usize> = for<'lifetime> std::marker::PhantomData<&'lifetime (T,)>;
+        }
 
-    let moved_ar;
-    {
-        let num = Box::new((1, 2, 3, 4));
-        let ar = new_any_ref::<Bar<u16>, _, _>(num, |x| vec![&x.0, &x.1, &x.2, &x.3]);
-        moved_ar = ar;
+        let moved_ar;
+        {
+            let num = Box::new((1, 2, 3, 4));
+            let ar = new_any_ref::<Bar<u16>, _, _>(num, |x| vec![&x.0, &x.1, &x.2, &x.3]);
+            moved_ar = ar;
+        }
+        assert_eq!(moved_ar.get(), &vec![&1, &2, &3, &4]);
     }
-    assert_eq!(moved_ar.get(), &vec![&1, &2, &3, &4]);
 }
