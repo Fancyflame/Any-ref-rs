@@ -22,7 +22,7 @@ struct Foo<'a> {
 // Define `ReturnFoo` and `ReturnBorrowedVec` using macro
 make_any_ref! {
     struct ReturnFoo = for<'f> Foo<'f>;
-    pub struct ReturnBorrowedVec<T:'static> = for<'a> Vec<&'a T> // Define complex struct
+    pub struct ReturnBorrowedVec<T:'static> = for<'a> Vec<&'a T>; // Define complex struct
 }
 
 let moved_ar;
