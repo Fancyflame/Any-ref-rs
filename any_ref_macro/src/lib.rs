@@ -73,6 +73,7 @@ pub fn make_any_ref(input: TokenStream) -> TokenStream {
             for x in generics.params.iter() {
                 let y = match x {
                     GenericParam::Const(_) => {
+                        //let n = &c.ident;
                         quote! {()}
                     }
                     GenericParam::Lifetime(l) => {
