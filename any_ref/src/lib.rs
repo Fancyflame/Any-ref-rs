@@ -120,9 +120,13 @@ where
 
 #[test]
 fn test() {
-    make_any_ref!(
+    use crate as any_ref;
+
+    make_any_ref! {
+        pub struct Foo=for<'a> &'a str;
         pub struct Bar<T:'static> = for<'a> Vec<&'a T>;
-    );
+        struct AAA<T:'static,const U:usize> = for<'lifetime> std::marker::PhantomData<&'lifetime (T,)>;
+    }
 
     let moved_ar;
     {
