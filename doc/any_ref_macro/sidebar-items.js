@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["make_any_ref","Implement `AnyRef` automatically. This macro generates a struct that could be used by `AnyRef` to return the corresponding type that with lifetime annotation."]]});

@@ -23,7 +23,7 @@ struct ImplItemIter(Punctuated<ImplItem, Nothing>);
 impl Parse for ImplItem {
     fn parse(input: ParseStream) -> Result<Self> {
         let vis: Visibility = input.parse()?; //pub
-        input.parse::<Token![struct]>()?; //struct
+        input.parse::<Token![type]>()?; //struct
         let ident: Ident = input.parse()?; //StructName
         let generics: Generics = input.parse()?; //<...>
         input.parse::<Token![=]>()?; //=
@@ -49,6 +49,20 @@ impl Parse for ImplItemIter {
     }
 }
 
+/// Implement `AnyRef` automatically.
+/// This macro generates a struct that could be used by `AnyRef`
+/// to return the corresponding type that with lifetime annotation.
+///
+/// # Example
+/// ```
+/// struct MyStruct<T>(Vec<T>);
+/// trait MyTrait{}
+///
+/// any_ref::make_any_ref!{
+///     pub type Foo<T:'static> = for<'a> MyStruct<&'a T>,
+///     type Bar = for<'b> Box<dyn MyTrait + 'b>
+/// }
+/// ```
 #[proc_macro]
 pub fn make_any_ref(input: TokenStream) -> TokenStream {
     let mut tstream = TokenStream::new();
@@ -107,15 +121,15 @@ pub fn make_any_ref(input: TokenStream) -> TokenStream {
         let q: TokenStream = quote! {
             #vis struct #ident #generics #struct_body;
 
-            impl #impl_g_long any_ref::SelfDeref<#bl> for #ident #type_g #where_clause{
+            impl #impl_g_long any_ref::ReturnType<#bl> for #ident #type_g #where_clause{
                 type Target = #target;
             }
 
             impl #impl_g any_ref::LifetimeDowncast for #ident #type_g #where_clause{
                 #[inline]
                 fn lifetime_downcast<'_shorter_lifetime_, '_longer_lifetime_: '_shorter_lifetime_>(
-                    from: &'_shorter_lifetime_ <Self as any_ref::SelfDeref<'_longer_lifetime_>>::Target,
-                ) -> &'_shorter_lifetime_ <Self as any_ref::SelfDeref<'_shorter_lifetime_>>::Target {
+                    from: &'_shorter_lifetime_ <Self as any_ref::ReturnType<'_longer_lifetime_>>::Target,
+                ) -> &'_shorter_lifetime_ <Self as any_ref::ReturnType<'_shorter_lifetime_>>::Target {
                     from
                 }
             }
