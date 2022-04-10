@@ -95,11 +95,14 @@ where
     pub fn map<T2, F>(self, func: F) -> AnyRef<T2, O>
     where
         T2: LifetimeDowncast + ?Sized,
-        F: for<'a> FnOnce(&'a <T as ReturnType<'a>>::Target) -> <T2 as ReturnType<'a>>::Target,
+        F: for<'a> FnOnce(
+            <T as ReturnType<'a>>::Target,
+            &'a <O as Deref>::Target,
+        ) -> <T2 as ReturnType<'a>>::Target,
     {
-        let tar = unsafe { &*(&self.holder as *const _) };
+        let r = unsafe { &*(&*self.owner as *const _) };
         AnyRef {
-            holder: func(tar),
+            holder: func(self.holder, r),
             owner: self.owner,
         }
     }
@@ -108,7 +111,7 @@ where
     #[inline]
     pub fn get<'a>(&'a self) -> &'a <T as ReturnType<'a>>::Target {
         <T as LifetimeDowncast>::lifetime_downcast(&self.holder)
-        //$Ref(&self.holder)
+        //&self.holder
     }
 
     /// Return the owned struct
@@ -154,4 +157,16 @@ where
         holder: func(tar),
         owner: owner,
     }
+}
+
+#[test]
+fn test() {
+    use crate as any_ref;
+    make_any_ref! {
+        type RefRef<T:'static+?Sized> = for<'a> &'a &'a T;
+    }
+
+    let x = new_any_ref::<Reference<str>, Box<str>, _>("hello".into(), |x| x);
+    let y = x.map::<Reference<str>, _>(|x, _| x);
+    println!("{}", y.get());
 }
