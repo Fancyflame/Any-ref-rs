@@ -89,7 +89,7 @@ where
     /// let ar = new_any_ref::<Reference<str>,_,_>(string,|s| &s[..5]);
     /// assert_eq!(ar.get(), &"hello");
     ///
-    /// let ar = ar.map::<Reference<[u8]>,_>(|s| s.as_bytes());
+    /// let ar = ar.map::<Reference<[u8]>,_>(|s, _| s.as_bytes());
     /// assert_eq!(ar.get(), b"hello");
     /// ```
     pub fn map<T2, F>(self, func: F) -> AnyRef<T2, O>
@@ -124,9 +124,9 @@ where
 impl<T, O> Clone for AnyRef<T, O>
 where
     T: LifetimeDowncast + ?Sized,
-    <T as ReturnType<'static>>::Target: Clone,
+    for<'a> <T as ReturnType<'a>>::Target: Clone,
     O: CloneStableDeref + 'static,
-    <O as Deref>::Target: 'static,
+    //<O as Deref>::Target: 'static,
 {
     #[inline]
     fn clone(&self) -> Self {
@@ -162,11 +162,4 @@ where
 #[test]
 fn test() {
     use crate as any_ref;
-    make_any_ref! {
-        type RefRef<T:'static+?Sized> = for<'a> &'a &'a T;
-    }
-
-    let x = new_any_ref::<Reference<str>, Box<str>, _>("hello".into(), |x| x);
-    let y = x.map::<Reference<str>, _>(|x, _| x);
-    println!("{}", y.get());
 }
