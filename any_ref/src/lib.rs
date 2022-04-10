@@ -137,8 +137,8 @@ where
     #[inline]
     fn clone(&self) -> Self {
         AnyRef {
-            owner: self.owner.clone(),
             holder: self.holder.clone(),
+            owner: self.owner.clone(),
         }
     }
 }
