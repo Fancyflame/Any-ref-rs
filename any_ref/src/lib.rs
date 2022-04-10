@@ -48,8 +48,9 @@ pub use type_subtitute::*;
 
 /// The wrapper that holding `O` and the return type of `T`.
 pub struct AnyRef<T: LifetimeDowncast + ?Sized, O> {
-    owner: O,
+    // NOTICE: Cannot swap positions of `holder` and `owner`!
     holder: <T as ReturnType<'static>>::Target,
+    owner: O,
 }
 
 impl<T, O> AnyRef<T, O>
