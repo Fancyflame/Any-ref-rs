@@ -85,12 +85,17 @@ where
     /// # Example
     /// ```
     /// use any_ref::{new_any_ref, Reference};
-    /// let string="hello world".to_string();
-    /// let ar = new_any_ref::<Reference<str>,_,_>(string,|s| &s[..5]);
-    /// assert_eq!(ar.get(), &"hello");
     ///
-    /// let ar = ar.map::<Reference<[u8]>,_>(|s, _| s.as_bytes());
-    /// assert_eq!(ar.get(), b"hello");
+    /// let string="hello world".to_string();
+    /// let ar = new_any_ref::<Reference<str>, _, _>(string, |s| &s[6..]);
+    /// assert_eq!(*ar.get(), "world");
+    ///
+    /// let ar = ar.map::<Reference<[u8]>,_>(|world, string|{
+    ///     assert_eq!(world, "world");
+    ///     assert_eq!(string, "hello world");
+    ///     (&string[..5]).as_bytes()
+    /// });
+    /// assert_eq!(*ar.get(), b"hello");
     /// ```
     pub fn map<T2, F>(self, func: F) -> AnyRef<T2, O>
     where
@@ -161,5 +166,5 @@ where
 
 #[test]
 fn test() {
-    use crate as any_ref;
+    //use crate as any_ref;
 }
