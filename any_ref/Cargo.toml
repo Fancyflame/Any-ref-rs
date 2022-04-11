@@ -5,6 +5,7 @@ edition = "2021"
 keywords = ["reference", "macro"]
 license = "MIT"
 name = "any_ref"
+readme = "../README.md"
 repository = "https://github.com/Fancyflame/Any-ref-rs"
 version = "0.1.0"
 
