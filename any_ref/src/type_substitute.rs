@@ -21,11 +21,13 @@ pub trait LifetimeDowncast: for<'a> ReturnType<'a> {
     ) -> &'a <Self as ReturnType<'a>>::Target;
 }
 
-impl<'a, T: ?Sized> ReturnType<'a> for &'a T {
-    type Target = Self;
-}
-
-// impl for &T
+/*impl<T: for<'a> ReturnType<'a> + 'static> LifetimeDowncast for T {
+    fn lifetime_downcast<'a, 'b: 'a>(
+        from: &'a <Self as ReturnType<'b>>::Target,
+    ) -> &'a <Self as ReturnType<'a>>::Target {
+        from
+    }
+}*/
 
 make_any_ref!(
     pub type Reference<T:'static + ?Sized> = for<'a> &'a T;

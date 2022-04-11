@@ -173,6 +173,7 @@
 <span id="168">168</span>
 <span id="169">169</span>
 <span id="170">170</span>
+<span id="171">171</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Please take a look at [owning_ref](https://crates.io/crates/owning_ref) before using this crate,</span>
 <span class="doccomment">//! which is excellent and more suitable for simple usage. One of the shortages of `owning_ref` is that `owning_ref` can</span>
 <span class="doccomment">//! only keeps reference and cannot keeps arbitrary struct with lifetime annotation. `any_ref` is here</span>
@@ -215,16 +216,17 @@
 <span class="doccomment">//! assert_eq!(moved_ar.get(), &amp;&quot;hello&quot;);</span>
 <span class="doccomment">//! ```</span>
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">type_subtitute</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">type_substitute</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">any_ref_macro::make_any_ref</span>;
 <span class="kw">use</span> <span class="ident">stable_deref_trait</span>::{<span class="ident">CloneStableDeref</span>, <span class="ident">StableDeref</span>};
 <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">type_subtitute</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">type_substitute</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// The wrapper that holding `O` and the return type of `T`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnyRef</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">LifetimeDowncast</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">O</span><span class="op">&gt;</span> {
-    <span class="ident">owner</span>: <span class="ident">O</span>,
+    <span class="comment">// NOTICE: Cannot swap positions of `holder` and `owner`!</span>
     <span class="ident">holder</span>: <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">ReturnType</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Target</span>,
+    <span class="ident">owner</span>: <span class="ident">O</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="ident">AnyRef</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">O</span><span class="op">&gt;</span>
@@ -311,8 +313,8 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">AnyRef</span> {
-            <span class="ident">owner</span>: <span class="self">self</span>.<span class="ident">owner</span>.<span class="ident">clone</span>(),
             <span class="ident">holder</span>: <span class="self">self</span>.<span class="ident">holder</span>.<span class="ident">clone</span>(),
+            <span class="ident">owner</span>: <span class="self">self</span>.<span class="ident">owner</span>.<span class="ident">clone</span>(),
         }
     }
 }

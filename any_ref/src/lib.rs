@@ -40,11 +40,11 @@
 //! assert_eq!(moved_ar.get(), &"hello");
 //! ```
 
-pub mod type_subtitute;
+pub mod type_substitute;
 pub use any_ref_macro::make_any_ref;
 use stable_deref_trait::{CloneStableDeref, StableDeref};
 use std::ops::Deref;
-pub use type_subtitute::*;
+pub use type_substitute::*;
 
 /// The wrapper that holding `O` and the return type of `T`.
 pub struct AnyRef<T: LifetimeDowncast + ?Sized, O> {
