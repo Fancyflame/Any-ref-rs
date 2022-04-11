@@ -1,0 +1,5 @@
+[workspace]
+members = [
+  "any_ref",
+  "any_ref_macro",
+]

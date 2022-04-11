@@ -1,14 +1,19 @@
 [package]
-name = "any_ref_macro"
-version = "0.1.0"
+authors = ["FancyFlame <fancyflame@163.com>"]
+description = "Creating a bundle that can carry an owner and a struct borrows it"
 edition = "2021"
+keywords = ["reference", "macro"]
+license = "MIT"
+name = "any_ref_macro"
+repository = "https://github.com/Fancyflame/Any-ref-rs"
+version = "0.1.0"
 
 [lib]
-proc-macro=true
+proc-macro = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-proc-macro2="1"
-syn="1"
-quote="1"
+proc-macro2 = "1"
+quote = "1"
+syn = "1"
