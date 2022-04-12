@@ -37,7 +37,7 @@
 //!     let ar = new_any_ref::<Reference<str>, _, _>(s, |x| &x[..5]);
 //!     moved_ar = ar;
 //! }
-//! assert_eq!(moved_ar.get(), &"hello");
+//! assert_eq!(*moved_ar.get(), "hello");
 //! ```
 //!
 //! # Stable Deref
@@ -61,7 +61,7 @@ use std::ops::Deref;
 pub use type_substitute::*;
 
 /// The wrapper that holding `O` and the return type of `T`.
-pub struct AnyRef<T: LifetimeDowncast + ?Sized, O> {
+pub struct AnyRef<T: LifetimeDowncast + ?Sized, O: 'static> {
     // NOTICE: Cannot swap positions of `holder` and `owner`!
     holder: <T as ReturnType<'static>>::Target,
     owner: O,
@@ -71,7 +71,6 @@ impl<T, O> AnyRef<T, O>
 where
     T: LifetimeDowncast + ?Sized,
     O: StableDeref + 'static,
-    <O as Deref>::Target: 'static,
 {
     /// Create `AnyRef`. Using this function cannot compile anyway due to a
     /// compiler bug, use `new_any_ref` instead. This
@@ -146,7 +145,6 @@ where
     T: LifetimeDowncast + ?Sized,
     for<'a> <T as ReturnType<'a>>::Target: Clone,
     O: CloneStableDeref + 'static,
-    //<O as Deref>::Target: 'static,
 {
     #[inline]
     fn clone(&self) -> Self {
@@ -167,9 +165,8 @@ where
 /// ```
 pub fn new_any_ref<T, O, F>(owner: O, func: F) -> AnyRef<T, O>
 where
-    O: StableDeref + 'static,
-    <O as Deref>::Target: 'static,
     T: LifetimeDowncast + ?Sized,
+    O: StableDeref + 'static,
     F: for<'a> FnOnce(&'a <O as Deref>::Target) -> <T as ReturnType<'a>>::Target,
 {
     let tar = unsafe { &*(&*owner as *const _) };
@@ -177,9 +174,4 @@ where
         holder: func(tar),
         owner: owner,
     }
-}
-
-#[test]
-fn test() {
-    //use crate as any_ref;
 }
