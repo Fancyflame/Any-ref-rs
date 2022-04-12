@@ -1,6 +1,6 @@
-//! Please take a look at [owning_ref](https://crates.io/crates/owning_ref) before using this crate,
-//! which is excellent and more suitable for simple usage. One of the shortages of `owning_ref` is that `owning_ref` can
-//! only keeps reference and cannot keeps arbitrary struct with lifetime annotation. `any_ref` is here
+//! It's alternative to take a look at [owning_ref](https://crates.io/crates/owning_ref) before using this crate,
+//! which maybe more suitable for simple use. One of the shortages of `owning_ref` is that `owning_ref` can
+//! only keep reference and cannot keep arbitrary struct with lifetime annotation. `any_ref` is here
 //! to resolve this problem.
 //!
 //! Pre-made types:
@@ -39,6 +39,20 @@
 //! }
 //! assert_eq!(moved_ar.get(), &"hello");
 //! ```
+//!
+//! # Stable Deref
+//! It is worth noting that `O` must implement `std::ops::Deref` and
+//! the memory address of its target must be stable even if moved.
+//! In other words, the target `O` de-reference to must be allocated on the heap.
+//!
+//! We use [stable_deref_trait](https://crates.io/crates/stable_deref_trait)
+//! crate to realize this limitation. Please read its [`StableDeref`] passage
+//! for details.
+//!
+//! `Clone` trait is also implemented for `AnyRef`, but it requires `O` to
+//! implements [`CloneStableDeref`]. That is, besides all the limitations of
+//! `StableDeref`, `O` requires deref to the same address when cloned. At present,
+//! only [`Rc`](std::rc::Rc) and [`Arc`](std::sync::Arc) implemented `CloneStableDeref`.
 
 pub mod type_substitute;
 pub use any_ref_macro::make_any_ref;

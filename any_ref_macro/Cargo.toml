@@ -6,9 +6,9 @@ edition = "2021"
 keywords = ["reference", "macro"]
 license = "MIT"
 name = "any_ref_macro"
-readme = "../README.md"
+readme = "README.md"
 repository = "https://github.com/Fancyflame/Any-ref-rs"
-version = "0.1.2"
+version = "0.1.3"
 
 [lib]
 proc-macro = true
