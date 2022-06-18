@@ -54,10 +54,13 @@
 //! `StableDeref`, `O` requires deref to the same address when cloned. At present,
 //! only [`Rc`](std::rc::Rc) and [`Arc`](std::sync::Arc) implemented `CloneStableDeref`.
 
+pub mod builder;
 pub mod type_substitute;
 pub use any_ref_macro::make_any_ref;
+pub use builder::build;
+use builder::AnyRefBuilder;
 use stable_deref_trait::{CloneStableDeref, StableDeref};
-use std::ops::Deref;
+use std::{marker::PhantomData, ops::Deref};
 pub use type_substitute::*;
 
 /// The wrapper that holding `O` and the return type of `T`.
@@ -65,6 +68,7 @@ pub struct AnyRef<T: LifetimeDowncast + ?Sized, O: 'static> {
     // NOTICE: Cannot swap positions of `holder` and `owner`!
     holder: <T as ReturnType<'static>>::Target,
     owner: O,
+    _phantom: PhantomData<*mut <T as ReturnType<'static>>::Target>,
 }
 
 impl<T, O> AnyRef<T, O>
@@ -90,6 +94,7 @@ where
         AnyRef {
             holder: func(tar),
             owner: owner,
+            _phantom: PhantomData,
         }
     }
 
@@ -123,6 +128,7 @@ where
         AnyRef {
             holder: func(self.holder, r),
             owner: self.owner,
+            _phantom: PhantomData,
         }
     }
 
@@ -151,6 +157,7 @@ where
         AnyRef {
             holder: self.holder.clone(),
             owner: self.owner.clone(),
+            _phantom: PhantomData,
         }
     }
 }
@@ -173,5 +180,6 @@ where
     AnyRef {
         holder: func(tar),
         owner: owner,
+        _phantom: PhantomData,
     }
 }
