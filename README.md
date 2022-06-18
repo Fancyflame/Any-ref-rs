@@ -4,7 +4,7 @@
 **[documentation](https://docs.rs/any_ref/latest/any_ref/)**
 
 ### ❓ What is any_ref
-`any_ref` is a crate that allows you to move a struct with lifetime annotation together with its owner anywhere, such as returning it from a function.
+`any_ref` is a crate that allows you to capture things that are **not** `'static` with memory safety.
 
 Here's a simple demo to see how it works.
 ```rust
@@ -31,15 +31,15 @@ let moved_ar;
 assert_eq!(moved_ar.get(), &vec![&1, &2, &3, &4]);
 ```
 
-### 📣 Notice
-At present version(rustc 1.60.0), due to a problem with type inferer, we cannot use `AnyRef::new` to initialize `AnyRef` in stable rust now, but it can in nightly. Thus we use `new_any_ref` as an temporary alternative solution. *This problem is expected to be settle in ructc 1.61.0*.
-
-`AnyRef::new` expected to be the formal way to initialize `AnyRef` in the future, *use `AnyRef::new` if possible*.
+### 📣 Compatibility Notice
+Below the version of rustc 1.61, due to a problem with type inferer, we cannot use `AnyRef::new` to initialize `AnyRef` in stable rust,
+using `new_any_ref` as an temporary alternative solution.
+**Please upgrade your rustc to 1.61.0 or later if possible!**
 
 ### 🤔 Troubleshooting
 Everyone is welcomed to find out bugs or put forward your ideas of improvement, and please feel free to open an issue if you have any questions.
 
-This crate is maintained.
+This crate is maintained (Written in 2022/6/18).
 
 ### ⚖️ License
 MIT

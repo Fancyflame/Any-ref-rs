@@ -1,9 +1,3 @@
-//! `AnyRefBuilder` itself **is not** a safe struct, whose safety is
-//! guaranteed by `AnyRef`, try not to initialize it manually via
-//! unsafe code. However, just feel free to use it. You won't be able to
-//! do anything unsafe unless you using unsafe code.
-//!
-
 use std::{marker::PhantomData, mem::MaybeUninit, ops::Deref};
 
 use stable_deref_trait::CloneStableDeref;
@@ -40,6 +34,7 @@ where
     }
 }
 
+/// To create multiple `AnyRef`s through one function.
 pub fn build<O, F>(owner: O, func: F)
 where
     O: CloneStableDeref + 'static,

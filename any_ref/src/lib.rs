@@ -13,7 +13,7 @@
 //!
 //! # Example
 //! ```
-//! use any_ref::{make_any_ref, new_any_ref, Reference};
+//! use any_ref::{make_any_ref, AnyRef, Reference};
 //!
 //! make_any_ref! {
 //!     pub type _ReturnStr=for<'a> &'a str;
@@ -24,9 +24,7 @@
 //! let moved_ar;
 //! {
 //!     let num = Box::new((1, 2, 3, 4));
-//!     let ar = new_any_ref::<ReturnVec<u16>, _, _>(num, |x| vec![&x.0, &x.1, &x.2, &x.3]);
-//!     // We cannot use this temporarily due to a compiler bug. Use `new_any_ref` instead.
-//!     // let ar = AnyRef::<ReturnVec<u16>, _>::new(num, |x| vec![&x.0, &x.1, &x.2, &x.3]);
+//!     let ar = AnyRef::<ReturnVec<u16>, _>::new(num, |x| vec![&x.0, &x.1, &x.2, &x.3]);
 //!     moved_ar = ar; // Move out of this scope
 //! }
 //! assert_eq!(moved_ar.get(), &vec![&1, &2, &3, &4]);
@@ -34,10 +32,33 @@
 //! let moved_ar;
 //! {
 //!     let s = "hello world".to_string();
-//!     let ar = new_any_ref::<Reference<str>, _, _>(s, |x| &x[..5]);
+//!     let ar = AnyRef::<Reference<str>, _>::new(s, |x| &x[..5]);
 //!     moved_ar = ar;
 //! }
 //! assert_eq!(*moved_ar.get(), "hello");
+//! ```
+//!
+//! # To `build` multiple `AnyRef`s
+//! ```
+//! use any_ref::{make_any_ref, AnyRef};
+//! use std::rc::Rc;
+//!
+//! make_any_ref! {
+//!     type Bytes = for<'a> &'a [u8];
+//! }
+//!
+//! let bytes: Rc<[u8]> = Rc::from((vec![1, 2, 3, 4, 5, 6]).into_boxed_slice());
+//! let mut first_half = None;
+//! let mut second_half = None;
+//!
+//! any_ref::build(bytes.clone(), |array, mut builder| {
+//!     let split_at = array.len() / 2;
+//!     first_half = Some(builder.build::<Bytes>(&array[..split_at]));
+//!     second_half = Some(builder.build::<Bytes>(&array[split_at..]));
+//! });
+//!
+//! assert_eq!(first_half.unwrap().get(), &[1, 2, 3]);
+//! assert_eq!(second_half.unwrap().get(), &[4, 5, 6]);
 //! ```
 //!
 //! # Stable Deref
@@ -58,9 +79,8 @@ pub mod builder;
 pub mod type_substitute;
 pub use any_ref_macro::make_any_ref;
 pub use builder::build;
-use builder::AnyRefBuilder;
 use stable_deref_trait::{CloneStableDeref, StableDeref};
-use std::{marker::PhantomData, ops::Deref};
+use std::ops::Deref;
 pub use type_substitute::*;
 
 /// The wrapper that holding `O` and the return type of `T`.
@@ -68,7 +88,6 @@ pub struct AnyRef<T: LifetimeDowncast + ?Sized, O: 'static> {
     // NOTICE: Cannot swap positions of `holder` and `owner`!
     holder: <T as ReturnType<'static>>::Target,
     owner: O,
-    _phantom: PhantomData<*mut <T as ReturnType<'static>>::Target>,
 }
 
 impl<T, O> AnyRef<T, O>
@@ -94,7 +113,6 @@ where
         AnyRef {
             holder: func(tar),
             owner: owner,
-            _phantom: PhantomData,
         }
     }
 
@@ -128,7 +146,6 @@ where
         AnyRef {
             holder: func(self.holder, r),
             owner: self.owner,
-            _phantom: PhantomData,
         }
     }
 
@@ -157,7 +174,6 @@ where
         AnyRef {
             holder: self.holder.clone(),
             owner: self.owner.clone(),
-            _phantom: PhantomData,
         }
     }
 }
@@ -180,6 +196,5 @@ where
     AnyRef {
         holder: func(tar),
         owner: owner,
-        _phantom: PhantomData,
     }
 }
