@@ -19,7 +19,7 @@ let moved_ar;
     let num: Box<(u16, u16, u16, u16)> = Box::new((1, 2, 3, 4));
 
     // Initialize an `AnyRef`
-    let ar = new_any_ref::<ReturnVec<u16>, _, _>(
+    let ar: AnyRef<ReturnVec<u16>, _> = AnyRef::new(
         num, |x| vec![&x.0, &x.1, &x.2, &x.3]
     );
 
@@ -39,7 +39,7 @@ using `new_any_ref` as an temporary alternative solution.
 ### 🤔 Troubleshooting
 Everyone is welcomed to find out bugs or put forward your ideas of improvement, and please feel free to open an issue if you have any questions.
 
-This crate is maintained (Written in 2022/6/18).
+This crate is maintained (Written in 2022/6/19).
 
 ### ⚖️ License
 MIT

@@ -1,7 +1,7 @@
-//! It's alternative to take a look at [owning_ref](https://crates.io/crates/owning_ref) before using this crate,
-//! which maybe more suitable for simple use. One of the shortages of `owning_ref` is that `owning_ref` can
-//! only keep reference and cannot keep arbitrary struct with lifetime annotation. `any_ref` is here
-//! to resolve this problem.
+//! `any_ref` is here to solve the problem that you are worry about have no idea carrying a struct
+//! with lifetime annotation anywhere. It's alternative to take a look at [owning_ref](https://crates.io/crates/owning_ref).
+//! One of the vital advantages of `any_ref` is that it allows you capture values with any type,
+//! not limited to references. Have a wonderful time with `any_ref`!
 //!
 //! Pre-made types:
 //! ```no_run
