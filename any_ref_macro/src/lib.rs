@@ -6,7 +6,7 @@ use syn::{
     parse_macro_input,
     punctuated::Punctuated,
     token::Comma,
-    BoundLifetimes, GenericParam, Generics, Ident, Token, Type, Visibility, WhereClause,
+    BoundLifetimes, GenericParam, Generics, Ident, Path, Token, Type, Visibility, WhereClause,
 };
 
 struct ImplItem {
@@ -18,7 +18,10 @@ struct ImplItem {
     where_clause: Option<WhereClause>,
 }
 
-struct ImplItemIter(Punctuated<ImplItem, Nothing>);
+struct ImplItemIter {
+    crate_path: Path,
+    body: Punctuated<ImplItem, Nothing>,
+}
 
 impl Parse for ImplItem {
     fn parse(input: ParseStream) -> Result<Self> {
@@ -45,13 +48,19 @@ impl Parse for ImplItem {
 impl Parse for ImplItemIter {
     #[inline]
     fn parse(input: ParseStream) -> Result<Self> {
-        Ok(ImplItemIter(Punctuated::parse_terminated(input)?))
+        let crate_path: Path = input.parse()?;
+        input.parse::<Token![;]>()?;
+        Ok(ImplItemIter {
+            crate_path,
+            body: Punctuated::parse_terminated(input)?,
+        })
     }
 }
 
 /// Implement `AnyRef` automatically.
 /// This macro generates a struct that could be used by `AnyRef`
 /// to return the corresponding type that with lifetime annotation.
+/// **Do NOT use this process macro directly, use `any_ref::make_any_ref` instead.**
 ///
 /// # Example
 /// ```
@@ -64,10 +73,12 @@ impl Parse for ImplItemIter {
 /// }
 /// ```
 #[proc_macro]
-pub fn make_any_ref(input: TokenStream) -> TokenStream {
+pub fn _make_any_ref(input: TokenStream) -> TokenStream {
     let mut tstream = TokenStream::new();
-    let punct = parse_macro_input!(input as ImplItemIter);
-    for pair in punct.0.into_pairs() {
+    let iterator = parse_macro_input!(input as ImplItemIter);
+    let crate_path = iterator.crate_path;
+
+    for pair in iterator.body.into_pairs() {
         let ImplItem {
             vis,
             ident,
@@ -121,15 +132,15 @@ pub fn make_any_ref(input: TokenStream) -> TokenStream {
         let q: TokenStream = quote! {
             #vis struct #ident #generics #struct_body;
 
-            impl #impl_g_long any_ref::ReturnType<#bl> for #ident #type_g #where_clause{
+            impl #impl_g_long #crate_path::ReturnType<#bl> for #ident #type_g #where_clause{
                 type Target = #target;
             }
 
-            impl #impl_g any_ref::LifetimeDowncast for #ident #type_g #where_clause{
+            impl #impl_g #crate_path::LifetimeDowncast for #ident #type_g #where_clause{
                 #[inline]
                 fn lifetime_downcast<'_shorter_lifetime_, '_longer_lifetime_: '_shorter_lifetime_>(
-                    from: &'_shorter_lifetime_ <Self as any_ref::ReturnType<'_longer_lifetime_>>::Target,
-                ) -> &'_shorter_lifetime_ <Self as any_ref::ReturnType<'_shorter_lifetime_>>::Target {
+                    from: &'_shorter_lifetime_ <Self as #crate_path::ReturnType<'_longer_lifetime_>>::Target,
+                ) -> &'_shorter_lifetime_ <Self as #crate_path::ReturnType<'_shorter_lifetime_>>::Target {
                     from
                 }
             }

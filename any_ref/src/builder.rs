@@ -35,11 +35,11 @@ where
 }
 
 /// To create multiple `AnyRef`s through one function.
-pub fn build<O, F>(owner: O, func: F)
+pub fn build<O, F, R>(owner: O, func: F) -> R
 where
     O: CloneStableDeref + 'static,
-    F: for<'a> FnOnce(&'a <O as Deref>::Target, AnyRefBuilder<'a, O>),
+    F: for<'a> FnOnce(&'a <O as Deref>::Target, AnyRefBuilder<'a, O>) -> R,
 {
     let tar = unsafe { &*(&*owner as *const _) };
-    func(tar, AnyRefBuilder::new(owner));
+    func(tar, AnyRefBuilder::new(owner))
 }

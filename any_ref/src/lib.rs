@@ -40,25 +40,21 @@
 //!
 //! # To `build` multiple `AnyRef`s
 //! ```
-//! use any_ref::{make_any_ref, AnyRef};
+//! use any_ref::{make_any_ref, AnyRef, Reference};
 //! use std::rc::Rc;
 //!
-//! make_any_ref! {
-//!     type Bytes = for<'a> &'a [u8];
-//! }
-//!
 //! let bytes: Rc<[u8]> = Rc::from((vec![1, 2, 3, 4, 5, 6]).into_boxed_slice());
-//! let mut first_half = None;
-//! let mut second_half = None;
 //!
-//! any_ref::build(bytes.clone(), |array, mut builder| {
+//! let (first_half, second_half) = any_ref::build(bytes.clone(), |array, mut builder| {
 //!     let split_at = array.len() / 2;
-//!     first_half = Some(builder.build::<Bytes>(&array[..split_at]));
-//!     second_half = Some(builder.build::<Bytes>(&array[split_at..]));
+//!     (
+//!         builder.build::<Reference<[u8]>>(&array[..split_at]),
+//!         builder.build::<Reference<[u8]>>(&array[split_at..])
+//!     )
 //! });
 //!
-//! assert_eq!(first_half.unwrap().get(), &[1, 2, 3]);
-//! assert_eq!(second_half.unwrap().get(), &[4, 5, 6]);
+//! assert_eq!(first_half.get(), &[1, 2, 3]);
+//! assert_eq!(second_half.get(), &[4, 5, 6]);
 //! ```
 //!
 //! # Stable Deref
@@ -77,11 +73,22 @@
 
 pub mod builder;
 pub mod type_substitute;
-pub use any_ref_macro::make_any_ref;
+#[doc(hidden)]
+pub use any_ref_macro::_make_any_ref;
 pub use builder::build;
-use stable_deref_trait::{CloneStableDeref, StableDeref};
+use builder::AnyRefBuilder;
+pub use stable_deref_trait::{CloneStableDeref, StableDeref};
 use std::ops::Deref;
 pub use type_substitute::*;
+
+#[macro_export]
+macro_rules! make_any_ref {
+    ($($tt:tt)*) => {
+        $crate::_make_any_ref!{
+            $crate;$($tt)*
+        }
+    };
+}
 
 /// The wrapper that holding `O` and the return type of `T`.
 pub struct AnyRef<T: LifetimeDowncast + ?Sized, O: 'static> {
@@ -104,6 +111,7 @@ where
     /// let s = "hello world".to_string();
     /// let ar = AnyRef::<Reference<str>, _>::new(s, |x| &x[..5]);
     /// ```
+    #[inline]
     pub fn new<F>(owner: O, func: F) -> AnyRef<T, O>
     where
         //_T: LifetimeDowncast + ?Sized,
@@ -121,19 +129,20 @@ where
     ///
     /// # Example
     /// ```
-    /// use any_ref::{new_any_ref, Reference};
+    /// use any_ref::{AnyRef, Reference};
     ///
     /// let string="hello world".to_string();
-    /// let ar = new_any_ref::<Reference<str>, _, _>(string, |s| &s[6..]);
+    /// let ar: AnyRef<Reference<str>, String> = AnyRef::new(string, |s| &s[6..]);
     /// assert_eq!(*ar.get(), "world");
     ///
-    /// let ar = ar.map::<Reference<[u8]>,_>(|world, string|{
+    /// let ar: AnyRef<Reference<[u8]>, _> = ar.map(|world, string|{
     ///     assert_eq!(world, "world");
     ///     assert_eq!(string, "hello world");
     ///     (&string[..5]).as_bytes()
     /// });
     /// assert_eq!(*ar.get(), b"hello");
     /// ```
+    #[inline]
     pub fn map<T2, F>(self, func: F) -> AnyRef<T2, O>
     where
         T2: LifetimeDowncast + ?Sized,
@@ -149,8 +158,38 @@ where
         }
     }
 
-    /// Get the reference
+    /// Like `map`, but using builder.
+    ///
+    /// #Example
+    /// ```
+    /// use any_ref::{AnyRef, Reference};
+    /// use std::rc::Rc;
+    ///
+    /// let string = Rc::new("hello world".to_string());
+    /// let ar: AnyRef<Reference<str>, _> = AnyRef::new(string, |s| &s[6..]);
+    /// assert_eq!(*ar.get(), "world");
+    ///
+    /// let (wo, bytes) = ar.map_build(|value, mut builder|{
+    ///     (
+    ///         builder.build::<Reference<str>>(&value[..2]),
+    ///         builder.build::<Reference<[u8]>>(value.as_bytes())
+    ///     )
+    /// });
+    ///
+    /// assert_eq!(*wo.get(), "wo");
+    /// assert_eq!(*bytes.get(), b"world");
+    /// ```
     #[inline]
+    pub fn map_build<F, R>(self, func: F) -> R
+    where
+        O: CloneStableDeref,
+        F: for<'a> FnOnce(<T as ReturnType<'a>>::Target, AnyRefBuilder<'a, O>) -> R,
+    {
+        func(self.holder, AnyRefBuilder::new(self.owner))
+    }
+
+    /// Get the reference
+    #[inline(always)]
     pub fn get<'a>(&'a self) -> &'a <T as ReturnType<'a>>::Target {
         <T as LifetimeDowncast>::lifetime_downcast(&self.holder)
         //&self.holder
@@ -186,6 +225,7 @@ where
 /// let vec = vec![1, 2, 3, 4, 5];
 /// new_any_ref::<Reference<i32>, _, _>(vec, |x| &x[0]);
 /// ```
+
 pub fn new_any_ref<T, O, F>(owner: O, func: F) -> AnyRef<T, O>
 where
     T: LifetimeDowncast + ?Sized,

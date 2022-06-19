@@ -4,7 +4,6 @@
 //! Please use `make_any_ref` macro if possible.
 
 use super::make_any_ref;
-use crate as any_ref;
 
 /// Indicates that a struct is exist to return other type with any lifetime
 pub trait ReturnType<'a> {

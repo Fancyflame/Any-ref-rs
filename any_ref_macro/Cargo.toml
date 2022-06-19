@@ -1,14 +1,14 @@
 [package]
 authors = ["FancyFlame <fancyflame@163.com>"]
-description = "Creating a bundle that can carry an owner and a struct borrows it"
+description = "To capture and move things that are NOT 'static with memory safety."
 documentation = "https://docs.rs/any_ref"
 edition = "2021"
-keywords = ["reference", "macro"]
+keywords = ["self-reference", "reference", "macro"]
 license = "MIT"
 name = "any_ref_macro"
 readme = "README.md"
 repository = "https://github.com/Fancyflame/Any-ref-rs"
-version = "0.1.3"
+version = "1.0.0"
 
 [lib]
 proc-macro = true
